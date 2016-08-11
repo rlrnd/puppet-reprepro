@@ -52,7 +52,8 @@ define reprepro::update (
 ) {
 
   include reprepro::params
-  include concat::setup
+  # concat::setup no longer required with concat v2+
+  # include concat::setup
 
   if $flat and ($components or $udebcomponents) {
     fail('$components and $udebcomponents are not allowed when $flat is provided.')

@@ -42,7 +42,8 @@ define reprepro::repository (
   ) {
 
   include reprepro::params
-  include concat::setup
+  # concat::setup no longer required with concat v2+
+  # include concat::setup
 
   file { "${basedir}/${name}":
     ensure  => $ensure ? { 'present' => 'directory', default => $ensure,},
