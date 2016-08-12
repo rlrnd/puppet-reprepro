@@ -119,15 +119,12 @@ define reprepro::repository (
     require => File["${basedir}/${name}"],
   }
   
-  $_options = join( $options, '\"\\n\"' )
-  notify { "reprepro_options_${name}": message => "X ${_options} X"}
   file { "${basedir}/${name}/conf/options":
     ensure  => $ensure,
     mode    => '0640',
     owner   => $owner,
     group   => $group,
-    #content => inline_template("<%= @options.join(\"\n\") %>\n"),
-    content => "${_options}\n",
+    content => inline_template("<%= @options.join(\"\n\") %>\n"),
     require => File["${basedir}/${name}/conf"],
   }
 
