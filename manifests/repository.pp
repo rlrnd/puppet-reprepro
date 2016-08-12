@@ -118,9 +118,8 @@ define reprepro::repository (
     group   => $group,
     require => File["${basedir}/${name}"],
   }
-  $_options = join( $options, '\"\n\"' )
   
-  
+  $_options = join( $options, '\"\\n\"' )
   notify { "reprepro_options_${name}": message => "X ${_options} X"}
   #file { "${basedir}/${name}/conf/options":
   #  ensure  => $ensure,
