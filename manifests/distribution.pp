@@ -110,11 +110,15 @@ define reprepro::distribution (
   if $install_cron {
     if grep( any2array( $architectures ), 'source' ) {
       $src_opt = ' -S'
-    }    
+    }
+    if grep( any2array( $architectures ), 'debian-installer' ) {
+      $udeb_opt = ' -U'
+    }
+    
     if $snapshots {
-      $command = "${homedir}/bin/update-distribution.sh -r ${repository} -c ${codename} -s${src_opt}"
+      $command = "${homedir}/bin/update-distribution.sh -r ${repository} -c ${codename} -s${udeb_opt}${src_opt}"
     } else {
-      $command = "${homedir}/bin/update-distribution.sh -r ${repository} -c ${codename}${src_opt}"
+      $command = "${homedir}/bin/update-distribution.sh -r ${repository} -c ${codename}${udeb_opt}${src_opt}"
     }
 
     cron { "${name} cron":
