@@ -69,6 +69,7 @@ if ${UDEB}; then
     $REPREPRO -b ${BASEDIR}/${REPOSITORY} includeudeb $CODENAME *.udeb
     if [ $? -eq 0 ]; then rm -f *.udeb; fi
     $REPREPRO -b ${BASEDIR}/${REPOSITORY} export $CODENAME;
+  fi
 fi
 if ${SOURCE}; then
   ls *.dsc 2>/dev/null
