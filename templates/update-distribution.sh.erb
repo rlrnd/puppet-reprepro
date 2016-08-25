@@ -3,9 +3,9 @@ SNAPSHOTS=false
 BASEDIR="<%= @basedir %>"
 REPREPRO="/usr/bin/reprepro"
 
-usage () { echo "Usage: $0 -r <repository> -c <codename> [-s]"; }
+usage () { echo "Usage: $0 -r <repository> -c <codename> [-s,-S]"; }
 
-while getopts ":r:d:c:sh" opt; do
+while getopts ":r:c:sSh" opt; do
   case $opt in
     r)
       REPOSITORY=$OPTARG
@@ -15,6 +15,9 @@ while getopts ":r:d:c:sh" opt; do
       ;;
     s)
       SNAPSHOTS=true
+      ;;
+    S)
+      SOURCE=true
       ;;
     h)
       usage
@@ -53,5 +56,17 @@ if [ $? -eq 0 ]; then
     SNAPDIR="${BASEDIR}/${REPOSITORY}/dists/${CODENAME}/snapshots"
     SNAPVER=$(if ls -d ${SNAPDIR}/[0-9]* &> /dev/null; then ls -d ${SNAPDIR}/[0-9]* | xargs -n 1 basename | sort -n | tail -1 | awk '{printf "%d", $1 + 1; exit}';else echo -n 0; fi)
     $REPREPRO -b ${BASEDIR}/${REPOSITORY} gensnapshot $CODENAME $SNAPVER
+  fi
+fi
+if ${SOURCE}; then
+  ls *.dsc 2>/dev/null
+  if [ $? -eq 0 ]; then
+    for F in $(ls *.dsc|sort -Vr); do
+      $REPREPRO -b ${BASEDIR}/${REPOSITORY} includedsc $CODENAME $F
+      if [ $? -eq 0 ]; then
+        awk '/^Files:/, /^[A-E,G-Z]/' $F | grep ^\  | awk '{ print $3}' | xargs rm -f
+        rm $F
+      fi
+    done
   fi
 fi

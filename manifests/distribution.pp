@@ -108,11 +108,13 @@ define reprepro::distribution (
   }
 
   if $install_cron {
-
+    if grep( any2array( $architectures ), 'source' ) {
+      $src_opt = ' -S'
+    }    
     if $snapshots {
-      $command = "${homedir}/bin/update-distribution.sh -r ${repository} -c ${codename} -s"
+      $command = "${homedir}/bin/update-distribution.sh -r ${repository} -c ${codename} -s${src_opt}"
     } else {
-      $command = "${homedir}/bin/update-distribution.sh -r ${repository} -c ${codename}"
+      $command = "${homedir}/bin/update-distribution.sh -r ${repository} -c ${codename}${src_opt}"
     }
 
     cron { "${name} cron":
