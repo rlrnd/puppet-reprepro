@@ -59,8 +59,10 @@ define reprepro::distribution (
   $basedir                = $::reprepro::basedir,
   $homedir                = $::reprepro::homedir,
   $fakecomponentprefix    = undef,
-  $udebcomponents         = $components,
+  $udebcomponents         = 'main',
+  $udebinclude            = true,
   $deb_indices            = 'Packages Release .gz .bz2',
+  $udeb_indices           = 'Packages Release .gz .bz2',
   $dsc_indices            = 'Sources Release .gz .bz2',
   $update                 = '',
   $pull                   = '',
@@ -111,7 +113,7 @@ define reprepro::distribution (
     if grep( any2array( $architectures ), 'source' ) {
       $src_opt = ' -S'
     }
-    if grep( any2array( $architectures ), 'debian-installer' ) {
+    if $udebinclude {
       $udeb_opt = ' -U'
     }
     
