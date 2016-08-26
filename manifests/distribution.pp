@@ -59,10 +59,13 @@ define reprepro::distribution (
   $basedir                = $::reprepro::basedir,
   $homedir                = $::reprepro::homedir,
   $fakecomponentprefix    = undef,
-  $udebcomponents         = 'main',
-  $udebinclude            = true,
+  $udebcomponents         = $components,
+  $udeb                   = true,
+  $deb_override           = undef,
+  $udeb_override          = undef,
+  $dsc_override           = undef,
   $deb_indices            = 'Packages Release .gz .bz2',
-  $udeb_indices           = 'Packages Release .gz .bz2',
+  $udeb_indices           = 'Packages .gz .bz2',
   $dsc_indices            = 'Sources Release .gz .bz2',
   $update                 = '',
   $pull                   = '',
@@ -113,7 +116,7 @@ define reprepro::distribution (
     if grep( any2array( $architectures ), 'source' ) {
       $src_opt = ' -S'
     }
-    if $udebinclude {
+    if $udeb {
       $udeb_opt = ' -U'
     }
     

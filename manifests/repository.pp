@@ -180,7 +180,7 @@ define reprepro::repository (
 
   if $createsymlinks {
     exec {"${name}-createsymlinks":
-      command     => "su -c 'reprepro -b ${basedir}/${name}/${repository} --delete createsymlinks' ${owner}",
+      command     => "su -c 'reprepro -b ${basedir}/${name} --delete createsymlinks' ${owner}",
       refreshonly => true,
       subscribe   => File["${basedir}/${name}/conf/distributions"],
     }

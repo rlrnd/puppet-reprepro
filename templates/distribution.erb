@@ -22,6 +22,15 @@ Description: <%= @description %>
 DebIndices: <%= @deb_indices %>
 UDebIndices: <%= @udeb_indices %>
 DscIndices: <%= @dsc_indices %>
+<% if @deb_override -%>
+DebOverride: <%= @deb_override %>
+<% end -%>
+<% if @udeb_override -%>
+UDebOverride: <%= @udeb_override %>
+<% end -%>
+<% if @dsc_override -%>
+DscOverride: <%= @dsc_override %>
+<% end -%>
 <% if @sign_with != "" -%>
 SignWith: <%= @sign_with %>
 <% end -%>
