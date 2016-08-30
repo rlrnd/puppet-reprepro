@@ -8,7 +8,7 @@ REPREPRO="/usr/bin/reprepro"
 
 usage () { echo "Usage: $0 -r <repository> -c <codename> [-C,-s,-S,-U]"; }
 
-while getopts ":r:c:sSUh" opt; do
+while getopts ":r:c:CsSUh" opt; do
   case $opt in
     r)
       REPOSITORY=$OPTARG
