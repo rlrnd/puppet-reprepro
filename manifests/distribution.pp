@@ -61,6 +61,7 @@ define reprepro::distribution (
   $fakecomponentprefix    = undef,
   $udebcomponents         = $components,
   $udeb                   = true,
+  $changes                = false,
   $deb_override           = undef,
   $udeb_override          = undef,
   $dsc_override           = undef,
@@ -113,6 +114,9 @@ define reprepro::distribution (
   }
 
   if $install_cron {
+    if $changes {
+      $changes_opt = ' -C'
+    }
     if grep( any2array( $architectures ), 'source' ) {
       $src_opt = ' -S'
     }
@@ -121,9 +125,9 @@ define reprepro::distribution (
     }
     
     if $snapshots {
-      $command = "${homedir}/bin/update-distribution.sh -r ${repository} -c ${codename} -s${udeb_opt}${src_opt}"
+      $command = "${homedir}/bin/update-distribution.sh -r ${repository} -c ${codename} -s${changes_opt}${udeb_opt}${src_opt}"
     } else {
-      $command = "${homedir}/bin/update-distribution.sh -r ${repository} -c ${codename}${udeb_opt}${src_opt}"
+      $command = "${homedir}/bin/update-distribution.sh -r ${repository} -c ${codename}${changes_opt}${udeb_opt}${src_opt}"
     }
 
     cron { "${name} cron":

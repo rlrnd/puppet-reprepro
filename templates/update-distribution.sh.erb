@@ -2,10 +2,11 @@
 SNAPSHOTS=false
 SOURCE=false
 UDEB=false
+CHANGES=false
 BASEDIR="<%= @basedir %>"
 REPREPRO="/usr/bin/reprepro"
 
-usage () { echo "Usage: $0 -r <repository> -c <codename> [-s,-S,-U]"; }
+usage () { echo "Usage: $0 -r <repository> -c <codename> [-C,-s,-S,-U]"; }
 
 while getopts ":r:c:sSUh" opt; do
   case $opt in
@@ -14,6 +15,9 @@ while getopts ":r:c:sSUh" opt; do
       ;;
     c)
       CODENAME=$OPTARG
+      ;;
+    C)
+      CHANGES=true
       ;;
     s)
       SNAPSHOTS=true
@@ -58,6 +62,31 @@ OLDMASK=$(umask)
 umask <%= @repo_umask %>
 
 <% end -%>
+
+if $CHANGES; then
+  # Move .changes files to incoming dir, if present
+  INCOMING=
+  ls *.changes 2>/dev/null
+  if [ $? -eq 0 ]; then
+    # Check for param in config file
+    if [ -f ${BASEDIR}/${REPOSITORY}/conf/incoming ]; then
+      INCOMING=$(awk '/^IncomingDir:/ { print $2 }' ${BASEDIR}/${REPOSITORY}/conf/incoming)
+    fi
+    # Use param if present
+    if [ -z $INCOMING ];then
+      INCOMING_DIR="${BASEDIR}/${REPOSITORY}/incoming"
+    else
+      INCOMING_DIR="${BASEDIR}/${REPOSITORY}/${INCOMING}"
+    fi
+    # Check if dir exists and move files
+    if [ -d ${INCOMING_DIR} ]; then
+      mv *.changes ${INCOMING_DIR}/
+      
+    fi
+  fi
+fi
+
+# Process .deb files, if present
 ls *.deb 2>/dev/null
 if [ $? -eq 0 ]; then 
   $REPREPRO -b ${BASEDIR}/${REPOSITORY} includedeb $CODENAME *.deb
@@ -70,6 +99,8 @@ if [ $? -eq 0 ]; then
     $REPREPRO -b ${BASEDIR}/${REPOSITORY} gensnapshot $CODENAME $SNAPVER
   fi
 fi
+
+# Process .udeb files, if present
 if ${UDEB}; then
   ls *.udeb 2>/dev/null
   if [ $? -eq 0 ]; then
@@ -78,6 +109,8 @@ if ${UDEB}; then
     $REPREPRO -b ${BASEDIR}/${REPOSITORY} export $CODENAME;
   fi
 fi
+
+# Process source files (.dsc), if present
 if ${SOURCE}; then
   ls *.dsc 2>/dev/null
   if [ $? -eq 0 ]; then
@@ -91,7 +124,16 @@ if ${SOURCE}; then
     $REPREPRO -b ${BASEDIR}/${REPOSITORY} export $CODENAME;
   fi
 fi
+
+# Process .changes files, if present
+if $CHANGES; then
+  ls ${INCOMING_DIR}/*.changes 2>/dev/null
+  if [ $? -eq 0 ]; then
+    $REPREPRO -b ${BASEDIR}/${REPOSITORY} include $CODENAME *.changes
+  fi   
+fi
 <% if @repo_umask -%>
+
 # Reset umask to default
 umask ${OLDMASK}
 <% end -%>
