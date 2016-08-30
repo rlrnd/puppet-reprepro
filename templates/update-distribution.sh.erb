@@ -129,7 +129,9 @@ fi
 if $CHANGES; then
   ls ${INCOMING_DIR}/*.changes 2>/dev/null
   if [ $? -eq 0 ]; then
-    $REPREPRO -b ${BASEDIR}/${REPOSITORY} include $CODENAME *.changes
+    for F in $(ls ${INCOMING_DIR}/*.changes|sort -Vr); do
+      $REPREPRO -b ${BASEDIR}/${REPOSITORY} include $CODENAME $F
+    done
   fi   
 fi
 <% if @repo_umask -%>
