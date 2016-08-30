@@ -63,38 +63,29 @@ umask <%= @repo_umask %>
 
 <% end -%>
 
-#if $CHANGES; then
-  #  # Move .changes files to incoming dir, if present
-  #INCOMING=
-  #ls *.changes 2>/dev/null
-  #if [ $? -eq 0 ]; then
-    #  # Check for param in config file
-    #if [ -f ${BASEDIR}/${REPOSITORY}/conf/incoming ]; then
-      #  INCOMING=$(awk '/^IncomingDir:/ { print $2 }' ${BASEDIR}/${REPOSITORY}/conf/incoming)
-    #fi
-    ## Use param if present
-    #if [ -z $INCOMING ];then
-      #  INCOMING_DIR="${BASEDIR}/${REPOSITORY}/incoming"
-    #else
-      #  INCOMING_DIR="${BASEDIR}/${REPOSITORY}/${INCOMING}"
-    #fi
-    ## Check if dir exists and move files
-    #if [ -d ${INCOMING_DIR} ]; then
-      #  mv *.changes ${INCOMING_DIR}/
-      #  
-    #fi
-  #fi
-#fi
+# Process source files (.dsc), if present
+if ${SOURCE}; then
+  ls *.dsc 2>/dev/null
+  if [ $? -eq 0 ]; then
+    for F in $(ls *.dsc|sort -Vr); do
+      $REPREPRO -b ${BASEDIR}/${REPOSITORY} includedsc $CODENAME $F
+      if [ $? -eq 0 ]; then
+        awk '/^Files:/, /^[A-E,G-Z]/' $F | grep ^\  | awk '{ print $3}' | xargs rm -f
+        rm $F
+      fi
+    done
+    $REPREPRO -b ${BASEDIR}/${REPOSITORY} export $CODENAME;
+  fi
+fi
 
 # Process .changes files, if present
 if $CHANGES; then
-  #ls ${INCOMING_DIR}/*.changes 2>/dev/null
   ls *.changes 2>/dev/null
   if [ $? -eq 0 ]; then
-    #for F in $(ls ${INCOMING_DIR}/*.changes|sort -Vr); do
     for F in $(ls *.changes|sort -Vr); do
       $REPREPRO -b ${BASEDIR}/${REPOSITORY} include $CODENAME $F
       if [ $? -eq 0 ]; then
+        awk '/^Files:/, /^[A-E,G-Z]/' $F | grep ^\  | awk '{ print $5}' | xargs rm -f
         rm $F
       fi
     done
@@ -121,21 +112,6 @@ if ${UDEB}; then
   if [ $? -eq 0 ]; then
     $REPREPRO -b ${BASEDIR}/${REPOSITORY} includeudeb $CODENAME *.udeb
     if [ $? -eq 0 ]; then rm -f *.udeb; fi
-    $REPREPRO -b ${BASEDIR}/${REPOSITORY} export $CODENAME;
-  fi
-fi
-
-# Process source files (.dsc), if present
-if ${SOURCE}; then
-  ls *.dsc 2>/dev/null
-  if [ $? -eq 0 ]; then
-    for F in $(ls *.dsc|sort -Vr); do
-      $REPREPRO -b ${BASEDIR}/${REPOSITORY} includedsc $CODENAME $F
-      if [ $? -eq 0 ]; then
-        awk '/^Files:/, /^[A-E,G-Z]/' $F | grep ^\  | awk '{ print $3}' | xargs rm -f
-        rm $F
-      fi
-    done
     $REPREPRO -b ${BASEDIR}/${REPOSITORY} export $CODENAME;
   fi
 fi
