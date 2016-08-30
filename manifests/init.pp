@@ -17,9 +17,14 @@ class reprepro (
   $manage_user = true,
   $user_name   = $::reprepro::params::user_name,
   $group_name  = $::reprepro::params::group_name,
+  $repo_umask  = undef,
 ) inherits reprepro::params {
   validate_bool($manage_user)
-
+  
+  if $repo_umask != undef {
+    validate_re( $repo_umask, [ '^[0-7]{3,4}$', ])
+  }
+  
   package { $::reprepro::params::package_name:
     ensure => $::reprepro::params::ensure,
   }
