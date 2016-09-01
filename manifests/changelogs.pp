@@ -46,7 +46,7 @@ define reprepro::changelogs (
       exec { "${name}_install_changelogs_script":
         path    => '/usr/bin:/bin',
         user    => "${owner}",
-        command => "test -f ${source_dir}/changelogs.example.gz && gunzip -c ${source_dir}/changelogs.example.gz > ${target_dir}/changelogs.${codename} || { [ -f ${source_dir}/changelogs.example ] && cp ${source_dir}/changelogs.example ${target_dir}/changelogs.${codename}; }",
+        command => "test -f ${source_dir}/changelogs.example.gz && gunzip -c ${source_dir}/changelogs.example.gz > ${target_dir}/changelogs.${codename} || { [ -f ${source_dir}/changelogs.example ] && cp ${source_dir}/changelogs.example ${target_dir}/changelogs.${codename}; } && chmod ug+x ${target_dir}/changelogs.${codename}",
         creates => "${target_dir}/changelogs.${codename}",
         require => File[ "${basedir}/${repository}/conf" ],
       }
