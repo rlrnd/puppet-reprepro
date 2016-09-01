@@ -33,7 +33,7 @@ define reprepro::changelogs (
     validate_re( $ensure, [ '^present$', '^absent$', '^simple$', '^full$'] )
   }
   
-  $source_dir = 'usr/share/doc/reprepro/examples'
+  $source_dir = '/usr/share/doc/reprepro/examples'
   $target_dir = "${basedir}/${repository}/conf"
   
   case $ensure {
