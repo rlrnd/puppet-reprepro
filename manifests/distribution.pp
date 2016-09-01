@@ -75,18 +75,39 @@ define reprepro::distribution (
   $install_cron           = true,
   $not_automatic          = '',
   $but_automatic_upgrades = 'no',
+  $changelogs             = false,
   $log                    = '',
 ) {
 
   include reprepro::params
   # concat::setup no longer required with concat v2+
   # include concat::setup
-
+  
+  if ! is_bool( $changelogs ) {
+    validate_re( $changelogs, '^simple$', '^full$', )
+  }
+  
+  case $changelogs {
+    false, 'absent':   {
+      $logscript = ""
+    }
+    default: {
+      $logscript = "changelogs.${codename}"
+    }
+  }
+  reprepro::changelogs { "${codename}":
+    ensure     => $changelogs,
+    repository => "${repository}",
+    basedir    => "${::reprepro::basedir}",
+    homedir    => "${::reprepro::homedir}",
+    owner      => "${::reprepro::user_name}",
+  }
+   
   $notify = $ensure ? {
     'present' => Exec["export distribution ${name}"],
     default => undef,
   }
-
+  
   concat::fragment { "distribution-${name}":
     ensure  => $ensure,
     target  => "${basedir}/${repository}/conf/distributions",

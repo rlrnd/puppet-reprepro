@@ -51,5 +51,9 @@ ButAutomaticUpgrades: <%= @but_automatic_upgrades %>
 <% end -%>
 <% if @log != "" -%>
 Log: <%= @log %>
+<$ elseif @logscript != "" -%>
+Log:
 <% end -%>
-
+<% if @logscript != "" -%>
+ --type=dsc <%= @logscript %>
+<% end -%>

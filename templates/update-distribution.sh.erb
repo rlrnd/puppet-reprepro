@@ -70,7 +70,7 @@ if ${SOURCE}; then
     for F in $(ls *.dsc|sort -Vr); do
       $REPREPRO -b ${BASEDIR}/${REPOSITORY} includedsc $CODENAME $F
       if [ $? -eq 0 ]; then
-        awk '/^Files:/, /^[A-E,G-Z]/' $F | grep ^\  | awk '{ print $3}' | xargs rm -f
+        awk '/^Files:/, /^[A-E,G-Z]/ { print $3 }' $F | xargs rm -f
         rm $F
       fi
     done
@@ -85,7 +85,7 @@ if $CHANGES; then
     for F in $(ls *.changes|sort -Vr); do
       $REPREPRO -b ${BASEDIR}/${REPOSITORY} include $CODENAME $F
       if [ $? -eq 0 ]; then
-        awk '/^Files:/, /^[A-E,G-Z]/' $F | grep ^\  | awk '{ print $5}' | xargs rm -f
+        awk '/^Files:/, /^[A-E,G-Z]/ { print $5 }' $F | xargs rm -f
         rm $F
       fi
     done
