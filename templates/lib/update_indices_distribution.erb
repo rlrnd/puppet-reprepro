@@ -1,6 +1,6 @@
 
 # <%= @codename %>
-if [ "X${CODENAME}X" == "X<%= @codename -%>" ]; then
+if [ "X${CODENAME}" == "X<%= @codename -%>" ]; then
   for SUFFIX in <%= @override_suffix -%>; do
     wget -NP ${TARGET_DIR} http://${SOURCE_HOST}/<%= @_distro -%>/indices/override.${CODENAME}.${SUFFIX}
   done
