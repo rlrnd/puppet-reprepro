@@ -9,12 +9,12 @@ Suite: <%= @suite %>
 <% end -%>
 Codename: <%= @codename %>
 Architectures: <%= @architectures %>
-Components: <%= @components %>
+Components: <%= @_components %>
 <% if @fakecomponentprefix -%>
 FakeComponentPrefix: <%= @fakecomponentprefix %>
 <% end -%>
 <% if @udebcomponents != "" -%>
-UDebComponents: <%= @udebcomponents %>
+UDebComponents: <%= @_udebcomponents %>
 <% end -%>
 <% if @description -%>
 Description: <%= @description %>
