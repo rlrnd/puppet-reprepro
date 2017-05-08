@@ -229,7 +229,7 @@ define reprepro::distribution (
 	    target  => "${idx_dir}/update-indices",
 	  }
 	}
-  cron { "${repository}_${codename}_update_overrides":
+  cron { "${repository}_${codename}_update_overrides_1":
     ensure      => $idx_ensure ? {
       true    => present,
       default => absent,
