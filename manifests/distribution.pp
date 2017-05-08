@@ -196,27 +196,41 @@ define reprepro::distribution (
   
   if $_overrides {
 	  # create update-indices script fragment
+	  $_deb_override       = $deb_override ? {
+	    undef   => "${idx_dir}/override.${codename}.reprepro",
+	    default => "${deb_override}",
+	  }
 	  $deboverride         = "${idx_dir}/override.\${CODENAME}.reprepro"
 	  $deb_suffix          = concat( $components, prefix( $components, "extra." ) )  
 	  $deb_overrides       = join( prefix( $components, 'override.${CODENAME}.' ), " " )
 	  $deb_extra_overrides = join( prefix( $components, 'override.${CODENAME}.extra.' ), " " )
 	  
 	  if $udeb {
+      $_udeb_override =  $udeb_override ? {
+        undef   => "${idx_dir}/override.${codename}.reprepro",
+        default => "${udeb_override}",
+      }
 	    $udeboverride   = "${idx_dir}/override.\${CODENAME}.debian-installer.reprepro"
 	    $udeb_suffix    = suffix( $components, '.debian-installer' ) 
 	    $udeb_overrides = join( prefix( $udeb_suffix, 'override.${CODENAME}.' ), " " )  
 	  }
 	  else {
+      $_udeb_override = undef
 	    $udeboverride   = undef
 	    $udeb_suffix    = ''
 	    $udeb_overrides = undef
 	  }
 	  if $source {
+      $_dsc_override = $dsc_override ? {
+        undef   => "${idx_dir}/override.${codename}.reprepro",
+        default => "${dsc_override}",
+	    }
 	    $srcoverride = "${idx_dir}/override.\${CODENAME}.src.reprepro"
 	    $src_suffix = suffix( $components, '.src' ) 
 	    $src_overrides =  join( prefix( $src_suffix, 'override.${CODENAME}.' ), " " )
 	  }
 	  else {
+      $_dsc_override = undef
 	    $srcoverride = undef
 	    $src_suffix = ''
 	    $src_overrides = undef
@@ -229,6 +243,12 @@ define reprepro::distribution (
 	    target  => "${idx_dir}/update-indices",
 	  }
 	}
+	else {
+	  $_deb_override = undef
+	  $_udeb_override = undef
+	  $_dsc_override  = undef
+	}
+	
   cron { "${repository}_${codename}_update_overrides":
     ensure      => $idx_ensure ? {
       true    => present,
