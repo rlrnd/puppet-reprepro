@@ -226,7 +226,7 @@ define reprepro::distribution (
 	  $_dsc_override  = undef
 	}
 	
-	notify { "reprepro_${repository}_${name}": message => "\ndeb_override:${deb_override}:\nudeb_override:${udeb_override}\ndsc_override:${dsc_override}\n
+	notify { "reprepro_${repository}_${name}": message => "\n_overrides:${_overrides}\ndeb_override:${deb_override}:\nudeb_override:${udeb_override}\ndsc_override:${dsc_override}\n
                                                            \n_deb_override:${_deb_override}:\n_udeb_override:${_udeb_override}\n_dsc_override:${_dsc_override}\n" }
   $notify = $ensure ? {
     'present' => Exec["export distribution ${name}"],
