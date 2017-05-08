@@ -114,29 +114,6 @@ define reprepro::distribution (
     owner      => "${::reprepro::user_name}",
   }
    
-  $notify = $ensure ? {
-    'present' => Exec["export distribution ${name}"],
-    default => undef,
-  }
-  
-  concat::fragment { "distribution-${name}":
-    ensure  => $ensure,
-    target  => "${basedir}/${repository}/conf/distributions",
-    content => template('reprepro/distribution.erb'),
-    notify  => $notify,
-  }
-
-  exec {"export distribution ${name}":
-    command     => "su -c 'reprepro -b ${basedir}/${repository} export ${codename}' ${reprepro::user_name}",
-    path        => ['/bin', '/usr/bin'],
-    refreshonly => true,
-    logoutput   => on_failure,
-    require     => [
-      User[$::reprepro::user_name],
-      Reprepro::Repository[$repository]
-    ],
-  }
-
   # Configure system for automatically adding packages
   file { "${basedir}/${repository}/tmp/${codename}":
     ensure => directory,
@@ -225,14 +202,14 @@ define reprepro::distribution (
         undef   => "${idx_dir}/override.${codename}.reprepro",
         default => "${dsc_override}",
 	    }
-	    $srcoverride = "${idx_dir}/override.\${CODENAME}.src.reprepro"
-	    $src_suffix = suffix( $components, '.src' ) 
+	    $srcoverride   = "${idx_dir}/override.\${CODENAME}.src.reprepro"
+	    $src_suffix    = suffix( $components, '.src' ) 
 	    $src_overrides =  join( prefix( $src_suffix, 'override.${CODENAME}.' ), " " )
 	  }
 	  else {
       $_dsc_override = undef
-	    $srcoverride = undef
-	    $src_suffix = ''
+	    $srcoverride   = undef
+	    $src_suffix    = ''
 	    $src_overrides = undef
 	  }
 	  
@@ -244,11 +221,34 @@ define reprepro::distribution (
 	  }
 	}
 	else {
-	  $_deb_override = undef
+	  $_deb_override  = undef
 	  $_udeb_override = undef
 	  $_dsc_override  = undef
 	}
 	
+  $notify = $ensure ? {
+    'present' => Exec["export distribution ${name}"],
+    default => undef,
+  }
+  
+  concat::fragment { "distribution-${name}":
+    ensure  => $ensure,
+    target  => "${basedir}/${repository}/conf/distributions",
+    content => template('reprepro/distribution.erb'),
+    notify  => $notify,
+  }
+
+  exec {"export distribution ${name}":
+    command     => "su -c 'reprepro -b ${basedir}/${repository} export ${codename}' ${reprepro::user_name}",
+    path        => ['/bin', '/usr/bin'],
+    refreshonly => true,
+    logoutput   => on_failure,
+    require     => [
+      User[$::reprepro::user_name],
+      Reprepro::Repository[$repository]
+    ],
+  }
+
   cron { "${repository}_${codename}_update_overrides":
     ensure      => $idx_ensure ? {
       true    => present,
