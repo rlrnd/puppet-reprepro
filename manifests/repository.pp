@@ -261,7 +261,7 @@ define reprepro::repository (
   }
 
   concat::fragment { "00-update-${name}-indices-header":
-    content => template( "reprepro/libs/update_indices_header.erb" ),
+    content => template( "reprepro/lib/update_indices_header.erb" ),
     target  => "${repo_homedir}/indices/update-indices",
   }
   
