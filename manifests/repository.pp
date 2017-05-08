@@ -45,7 +45,9 @@ define reprepro::repository (
   ) {
 
   include reprepro::params
-
+  
+  notify { "reprepro_${name}": message => "\noverrides:${overrides}\n" }
+  
   $repo_basedir = "${basedir}/${name}"
   $repo_homedir = "${homedir}/${name}"
   
