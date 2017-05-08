@@ -88,6 +88,7 @@ define reprepro::distribution (
   $_components = join( unique( $components ), ' ' )
   
   validate_array( $udebcomponents )
+  $_udebcomponents = join( unique( $udebcomponents ), ' ' )
   
   $repo_homedir = "${homedir}/${repository}"
   
