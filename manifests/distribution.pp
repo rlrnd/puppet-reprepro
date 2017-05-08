@@ -190,7 +190,7 @@ define reprepro::distribution (
 	  
 	  if $udeb {
       $_udeb_override =  $udeb_override ? {
-        undef   => "${idx_dir}/override.${codename}.reprepro",
+        undef   => "${idx_dir}/override.\${CODENAME}.debian-installer.reprepro",
         default => "${udeb_override}",
       }
 	    $udeboverride   = "${idx_dir}/override.\${CODENAME}.debian-installer.reprepro"
