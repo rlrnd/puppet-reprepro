@@ -91,7 +91,7 @@ define reprepro::distribution (
     $_overrides = false
   }
   else {
-    $_overrides = getparam( 'Reprepro::Repository'[ "${repository}" ], 'overrides' )
+    $_overrides = getparam( 'Reprepro::Repository[ "${repository}" ]', 'overrides' )
   }
   
   if ! is_bool( $changelogs ) {
