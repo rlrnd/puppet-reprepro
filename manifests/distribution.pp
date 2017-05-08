@@ -84,6 +84,9 @@ define reprepro::distribution (
 
   include reprepro::params
   
+  validate_array( $components )
+  validate_array( $udebcomponents )
+  
   $repo_homedir = "${homedir}/${repository}"
   
   
