@@ -194,20 +194,6 @@ define reprepro::distribution (
     $source = false
   }
   
-  file { "${idx_dir}":
-    ensure  => $idx_ensure ? {
-      true    => directory,
-      default => absent,
-    },
-    owner   => $owner,
-    group   => $group,
-    mode    => '640',
-    force   => true,
-    recurse => true,
-    purge   => true,
-    # require => File[ "", ]
-  }
-  
   if $_overrides {
 	  # create update-indices script fragment
 	  $deboverride         = "${idx_dir}/override.\${CODENAME}.reprepro"
