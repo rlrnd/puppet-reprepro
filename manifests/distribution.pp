@@ -219,7 +219,7 @@ define reprepro::distribution (
 	  $override_suffix = join( unique( delete( concat( $deb_suffix, $udeb_suffix, $src_suffix ), '' ) ), ' ')
 	  
 	  concat::fragment { "05-update-${repository}-indices-${codename}":
-	    content => template( "reprepro/libs/update_indices_distribution.erb" ),
+	    content => template( "reprepro/lib/update_indices_distribution.erb" ),
 	    target  => "${idx_dir}/update-indices",
 	  }
 	}
