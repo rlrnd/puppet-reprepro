@@ -229,7 +229,7 @@ define reprepro::distribution (
 	    target  => "${idx_dir}/update-indices",
 	  }
 	}
-  cron { "${repository}_${codename}_update_overrides_1":
+  cron { "${repository}_${codename}_update_overrides":
     ensure      => $idx_ensure ? {
       true    => present,
       default => absent,
@@ -239,8 +239,8 @@ define reprepro::distribution (
     environment => 'SHELL=/bin/bash',
     minute      => fqdn_rand( 60, "${repository}_${codename}_update_overrides"),
     hour        => [ '01', '18', ],
-    require     => File["${idx_dir}/update-indices"],
-    notify      => Concat[ "${repository}_${codename}_init_overrides" ],
+    require     => Concat["${idx_dir}/update-indices"],
+    notify      => Exec[ "${repository}_${codename}_init_overrides" ],
   }
   
   exec { "${repository}_${codename}_init_overrides":
