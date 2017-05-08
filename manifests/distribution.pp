@@ -240,7 +240,7 @@ define reprepro::distribution (
     minute      => fqdn_rand( 60, "${repository}_${codename}_update_overrides"),
     hour        => [ '01', '18', ],
     require     => File["${idx_dir}/update-indices"],
-    notify      => Exec[ "${repository}_${codename}_init_overrides" ],
+    notify      => Concat[ "${repository}_${codename}_init_overrides" ],
   }
   
   exec { "${repository}_${codename}_init_overrides":
