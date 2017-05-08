@@ -37,21 +37,21 @@ define reprepro::repository (
   $incoming_tmpdir = 'tmp',
   $incoming_allow  = '',
   $overrides       = false,
-  $override_src    = 'ca.archive.ubuntu.com',
+  $override_src    = 'archive.ubuntu.com',
   $owner           = $::reprepro::user_name,
   $group           = $::reprepro::group_name,
   $options         = ['verbose', 'ask-passphrase', 'basedir .'],
   $createsymlinks  = false,
+  $manage_htaccess = true,
   ) {
 
   include reprepro::params
-  
-  #notify { "reprepro_${name}": message => "\noverrides:${overrides}\n" }
   
   $repo_basedir = "${basedir}/${name}"
   $repo_homedir = "${homedir}/${name}"
   
   validate_bool( $overrides )
+  validate_bool( $manage_htaccess )
   
   $dir_ensure = $ensure ? {
     'present' => directory,
@@ -216,9 +216,16 @@ define reprepro::repository (
   # Overrides
   
   if $overrides {
-    $or_ensure = $ensure ? {
-      'present' => present,
-      default   => absent,
+    case $ensure {
+      'present': {
+        $or_ensure = present
+			  package { $::reprepro::params::util_pkgs:
+			    ensure => $or_ensure,
+			  }
+      }
+      default:   {
+        $or_ensure = absent
+      }
     }
   }
   else {
@@ -267,5 +274,18 @@ define reprepro::repository (
     target  => "${repo_homedir}/indices/update-indices",
   }
   
+  # Set up web server .htaccess files
+  $ht_ensure = $manage_htaccess ? {
+    true    => $ensure,
+    default => absent,
+  }
+  
+  ensure_resource( file,
+    [ "${repo_homedir}/.htaccess", "${repo_basedir}/conf/.htaccess", "${repo_basedir}/db/.htaccess", "${repo_basedir}/incoming/.htaccess", "${repo_basedir}/lists/.htaccess", "${repo_basedir}/logs/.htaccess", "${repo_basedir}/tmp/.htaccess", ],
+    { ensure  => $ht_ensure,
+      mode    => '644',
+      content => 'deny from all',
+    }
+  )
   
 }

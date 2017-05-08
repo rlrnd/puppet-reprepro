@@ -49,13 +49,13 @@ define reprepro::distribution (
   $repository,
   $architectures,
   $components,
+  $ensure                 = present,
   $origin                 = undef,
   $label                  = undef,
   $suite                  = undef,
   $description            = undef,
   $sign_with              = '',
   $codename               = $name,
-  $ensure                 = present,
   $basedir                = $::reprepro::basedir,
   $homedir                = $::reprepro::homedir,
   $fakecomponentprefix    = undef,
@@ -68,9 +68,9 @@ define reprepro::distribution (
   $deb_override           = undef,
   $udeb_override          = undef,
   $dsc_override           = undef,
-  $deb_indices            = 'Packages Release . .gz .bz2',
-  $udeb_indices           = 'Packages . .gz .bz2',
-  $dsc_indices            = 'Sources Release . .gz .bz2',
+  $deb_indices            = undef,
+  $udeb_indices           = undef,
+  $dsc_indices            = undef,
   $update                 = '',
   $pull                   = '',
   $uploaders              = '',
@@ -90,6 +90,8 @@ define reprepro::distribution (
   validate_array( $udebcomponents )
   $_udebcomponents = join( unique( $udebcomponents ), ' ' )
   
+  validate_re( $ensure, '^present$', '^absent$', )
+  
   $repo_homedir = "${homedir}/${repository}"
   
   
@@ -100,6 +102,34 @@ define reprepro::distribution (
     $_overrides = getparam( Reprepro::Repository[ "${repository}" ], 'overrides' )
   }
   
+  # Determine index file formats and ensure '.' (for plain-text) is added if overrides enabled )
+  if $_overrides {
+    if $deb_indices == undef {
+      $deb_indices_array = [ 'Packages', 'Release', '.', '.gz', '.bz2', ]
+    }
+    else {
+      if is_string( $deb_indices ) {
+        $deb_indices_array = unique( concat( split( $deb_indices, ' ' ), '.' ) )
+      }
+      else {
+        $deb_indices_array = unique( concat( $deb_indices, '.' ) )
+      }
+    }
+  }
+  else {
+    if $deb_indices == undef {
+      $deb_indices_array = [ 'Packages', 'Release', '.gz', '.bz2', ]
+    }
+    else {
+      if is_string( $deb_indices ) {
+        $deb_indices_array = unique( split( $deb_indices, ' ' ) )
+      }
+      else {
+        $deb_indices_array = unique( $deb_indices )
+      }
+    }
+  }
+    
   if ! is_bool( $changelogs ) {
     validate_re( $changelogs, '^simple$', '^full$', )
   }
@@ -128,6 +158,25 @@ define reprepro::distribution (
     group  => $::reprepro::group_name,
   }
 
+	# If /etc/cron.allow exists in the catalogue, ensure $user is listed
+  if defined_with_params( File[ '/etc/cron.allow' ] ) {
+    ensure_resource( 'file_line', "cron_allow_${$owner}", {
+      ensure  => $ensure,
+      path    => '/etc/cron.allow',
+      line    => "${owner}",
+      require =>  $ensure ? {
+        'absent' => Cron[ "${codename} cron" ],
+        default  => undef,
+      },
+    } )
+    case $ensure {
+      'absent': { $cron_require = undef }
+      default:  { $cron_require = [ File_line[ "cron_allow_${owner}" ], ] }
+    }
+  } else {
+    $cron_require = undef
+  }
+  
   if $install_cron {
     if $changes {
       $changes_opt = ' -C'
@@ -146,11 +195,12 @@ define reprepro::distribution (
     }
 
     cron { "${name} cron":
+      ensure      => $ensure,
       command     => $command,
       user        => $owner,
       environment => 'SHELL=/bin/bash',
       minute      => '*/5',
-      require     => File["${homedir}/bin/update-distribution.sh"],
+      require     => [ File["${homedir}/bin/update-distribution.sh"], $cron_require, ],
     }
   }
   
@@ -232,8 +282,6 @@ define reprepro::distribution (
 	  $_dsc_override  = undef
 	}
 	
-	#notify { "reprepro_${repository}_${name}": message => "\n_overrides:${_overrides}\ndeb_override:${deb_override}:\nudeb_override:${udeb_override}\ndsc_override:${dsc_override}\n
-  #                                                         \n_deb_override:${_deb_override}:\n_udeb_override:${_udeb_override}\n_dsc_override:${_dsc_override}\n" }
   $notify = $ensure ? {
     'present' => Exec["export distribution ${name}"],
     default => undef,
@@ -267,7 +315,7 @@ define reprepro::distribution (
     environment => 'SHELL=/bin/bash',
     minute      => fqdn_rand( 60, "${repository}_${codename}_update_overrides"),
     hour        => [ '01', '18', ],
-    require     => Concat["${idx_dir}/update-indices"],
+    require     => [ Concat["${idx_dir}/update-indices"], $cron_require, ],
     notify      => Exec[ "${repository}_${codename}_init_overrides" ],
   }
   

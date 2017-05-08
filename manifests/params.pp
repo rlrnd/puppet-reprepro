@@ -11,6 +11,7 @@ class reprepro::params {
   case $::osfamily {
     'Debian': {
       $package_name = 'reprepro'
+      $util_pkgs    = 'apt-utils'
       $user_name    = 'reprepro'
       $group_name   = 'reprepro'
     }
