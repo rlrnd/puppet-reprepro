@@ -249,7 +249,7 @@ define reprepro::distribution (
     user        => $owner,
     command     => "${idx_dir}/update-indices ${codename}",
     refreshonly => true,
-    require     => File[ "${idx_dir}/update-indices" ],
+    require     => Concat[ "${idx_dir}/update-indices" ],
   }      
 	
 }
