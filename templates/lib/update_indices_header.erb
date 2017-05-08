@@ -1,0 +1,12 @@
+#!/bin/bash
+
+. /etc/lsb-release
+
+if [ "X${1}" != 'X' ]; then
+  CODENAME=${1}
+else 
+  CODENAME=$DISTRIB_CODENAME
+fi
+
+SOURCE_HOST="<%= @override_src -%>"
+TARGET_DIR=<%= @repo_homedir -%>/indices

@@ -1,0 +1,35 @@
+#!/bin/bash
+
+. /etc/lsb-release
+
+if [ "X${1}" != 'X' ]; then
+  CODENAME=${1}
+else 
+  CODENAME=$DISTRIB_CODENAME
+fi
+
+SOURCE_HOST="<%= @override_src -%>"
+TARGET_DIR=<%= @config_dir -%>/indices
+
+for SUFFIX in <%= @override_suffix -%>; do
+  wget -NP ${TARGET_DIR} http://${SOURCE_HOST}/<%= @_distro -%>/indices/override.${CODENAME}.${SUFFIX}
+done
+
+# Reformat override.${CODENAME}.<component> for reprepro ("extended ftp-archive format")
+awk  '{print $1 " Priority " $2 "\n" $1 " Section " $3}' <%= @deb_overrides -%> > override.${CODENAME}.extended
+
+# Concatenate for reprepro
+sort -u override.${CODENAME}.extended <%= @deb_extra_overrides -%> > <%= @deboverride %>
+<% if @udeb_overrides -%>
+
+# Reformat override.${CODENAME}.<component>.debian-installer for reprepro ("extended ftp-archive format")
+awk  '{print $1 " Priority " $2 "\n" $1 " Section " $3}' <%= @udeb_overrides -%> > override.${CODENAME}.debian-installer.extended
+sort -u override.${CODENAME}.debian-installer.extended > <%= @udeboverride %>
+<% end -%>
+<% if @src_overrides -%>
+
+# Reformat override.${CODENAME}.<component>.src for reprepro ("extended ftp-archive format")
+awk  '{print $1 " Section " $2}' <%= @src_overrides -%> > override.${CODENAME}.src.extended
+sort -u override.${CODENAME}.src.extended > <%= @srcoverride %>
+<% end -%>
+

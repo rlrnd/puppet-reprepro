@@ -1,0 +1,21 @@
+#!/usr/bin/env perl
+# extraoverride.pl
+# generate ExtraOverride file
+# use as follows :-
+# extraoverride.pl < \`zcat <path to original cd mount point>/dists/<release_name>/main/binary-amd64/Packages.gz\` >> ${IMG_BUILD_ROOT}/repo/indices/override.<release_name>.extra.main
+while (<>) {
+        chomp;
+        next if /^ /;
+        if (/^$/ && defined(\$task)) {
+                print "\$package Task \$task\n";
+                undef \$package;
+                undef \$task;
+        }
+        (\$key, \$value) = split /: /, \$_, 2;
+        if (\$key eq 'Package') {
+                \$package = \$value;
+        }
+        if (\$key eq 'Task') {
+                \$task = \$value;
+        }
+}

@@ -62,6 +62,9 @@ define reprepro::distribution (
   $udebcomponents         = $components,
   $udeb                   = true,
   $changes                = false,
+  $disable_overrides      = false,                       #  Disable overrides (if enabled in parent repository)
+  $owner                  = $::reprepro::user_name,
+  $group                  = $::reprepro::group_name,
   $deb_override           = undef,
   $udeb_override          = undef,
   $dsc_override           = undef,
@@ -80,8 +83,16 @@ define reprepro::distribution (
 ) {
 
   include reprepro::params
-  # concat::setup no longer required with concat v2+
-  # include concat::setup
+  
+  $repo_homedir = "${homedir}/${repository}"
+  
+  
+  if $disable_overrides {
+    $_overrides = false
+  }
+  else {
+    $_overrides = getparam( 'Reprepro::Repository'[ "${repository}" ], 'overrides' )
+  }
   
   if ! is_bool( $changelogs ) {
     validate_re( $changelogs, '^simple$', '^full$', )
@@ -153,10 +164,106 @@ define reprepro::distribution (
 
     cron { "${name} cron":
       command     => $command,
-      user        => $::reprepro::user_name,
+      user        => $owner,
       environment => 'SHELL=/bin/bash',
       minute      => '*/5',
       require     => File["${homedir}/bin/update-distribution.sh"],
     }
   }
+  
+  
+  # Manage dirs and files for overrides
+  $idx_dir = "${repo_homedir}/indices"
+
+  if $ensure == present and $_overrides {
+    $idx_ensure  = true
+    $udeb_ensure = $udeb ? {
+      true    => file,
+      default => absent,
+    }
+  }
+  else {
+    $idx_ensure  = false
+    $udeb_ensure = absent
+  }
+  
+  if grep( any2array( $architectures ), 'source' ) {
+    $source = true
+  }
+  else {
+    $source = false
+  }
+  
+  file { "${idx_dir}":
+    ensure  => $idx_ensure ? {
+      true    => directory,
+      default => absent,
+    },
+    owner   => $owner,
+    group   => $group,
+    mode    => '640',
+    force   => true,
+    recurse => true,
+    purge   => true,
+    # require => File[ "", ]
+  }
+  
+  if $_overrides {
+	  # create update-indices script fragment
+	  $deboverride         = "${idx_dir}/override.\${CODENAME}.reprepro"
+	  $deb_suffix          = concat( $components, prefix( $components, "extra." ) )  
+	  $deb_overrides       = join( prefix( $components, 'override.${CODENAME}.' ), " " )
+	  $deb_extra_overrides = join( prefix( $components, 'override.${CODENAME}.extra.' ), " " )
+	  
+	  if $udeb {
+	    $udeboverride   = "${idx_dir}/override.\${CODENAME}.debian-installer.reprepro"
+	    $udeb_suffix    = suffix( $components, '.debian-installer' ) 
+	    $udeb_overrides = join( prefix( $udeb_suffix, 'override.${CODENAME}.' ), " " )  
+	  }
+	  else {
+	    $udeboverride   = undef
+	    $udeb_suffix    = ''
+	    $udeb_overrides = undef
+	  }
+	  if $source {
+	    $srcoverride = "${idx_dir}/override.\${CODENAME}.src.reprepro"
+	    $src_suffix = suffix( $components, '.src' ) 
+	    $src_overrides =  join( prefix( $src_suffix, 'override.${CODENAME}.' ), " " )
+	  }
+	  else {
+	    $srcoverride = undef
+	    $src_suffix = ''
+	    $src_overrides = undef
+	  }
+	  
+	  $override_suffix = join( unique( delete( concat( $deb_suffix, $udeb_suffix, $src_suffix ), '' ) ), ' ')
+	  
+	  concat::fragment { "05-update-${repository}-indices-${codename}":
+	    content => template( "reprepro/libs/update_indices_distribution.erb" ),
+	    target  => "${idx_dir}/update-indices",
+	  }
+	}
+  cron { "${repository}_${codename}_update_overrides":
+    ensure      => $idx_ensure ? {
+      true    => present,
+      default => absent,
+    },
+    command     => "${idx_dir}/update-indices ${codename}",
+    user        => $owner,
+    environment => 'SHELL=/bin/bash',
+    minute      => fqdn_rand( 60, "${repository}_${codename}_update_overrides"),
+    hour        => [ '01', '18', ],
+    require     => File["${idx_dir}/update-indices"],
+    notify      => Exec[ "${repository}_${codename}_init_overrides" ],
+  }
+  
+  exec { "${repository}_${codename}_init_overrides":
+    path        => '/usr/bin:/bin',
+    cwd         => "${idx_dir}",
+    user        => $owner,
+    command     => "${idx_dir}/update-indices ${codename}",
+    refreshonly => true,
+    require     => File[ "${idx_dir}/update-indices" ],
+  }      
+	
 }
