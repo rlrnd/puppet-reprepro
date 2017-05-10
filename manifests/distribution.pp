@@ -92,9 +92,6 @@ define reprepro::distribution (
   
   validate_re( $ensure, '^present$', '^absent$', )
   
-  $repo_homedir = "${homedir}/${repository}"
-  
-  
   if $disable_overrides {
     $_overrides = false
   }
@@ -145,17 +142,17 @@ define reprepro::distribution (
   reprepro::changelogs { "${codename}":
     ensure     => $changelogs,
     repository => "${repository}",
-    basedir    => "${::reprepro::basedir}",
-    homedir    => "${::reprepro::homedir}",
-    owner      => "${::reprepro::user_name}",
+    basedir    => "${basedir}",
+    homedir    => "${homedir}",
+    owner      => "${owner}",
   }
    
   # Configure system for automatically adding packages
   file { "${basedir}/${repository}/tmp/${codename}":
     ensure => directory,
     mode   => '0755',
-    owner  => $::reprepro::user_name,
-    group  => $::reprepro::group_name,
+    owner  => "${owner}",
+    group  => "${group}",
   }
 
 	# If /etc/cron.allow exists in the catalogue, ensure $user is listed
@@ -206,7 +203,7 @@ define reprepro::distribution (
   
   
   # Manage dirs and files for overrides
-  $idx_dir = "${repo_homedir}/indices"
+  $idx_dir = "${homedir}/${repository}/indices"
 
   if $ensure == present and $_overrides {
     $idx_ensure  = true
