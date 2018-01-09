@@ -2,7 +2,7 @@
 # <%= @codename %>
 if [ "X${CODENAME}" == "X<%= @codename -%>" ]; then
   for SUFFIX in <%= @override_suffix -%>; do
-    wget -NP ${TARGET_DIR} http://${SOURCE_HOST}/<%= @_distro -%>/indices/override.${CODENAME}.${SUFFIX}
+    wget -NP ${TARGET_DIR} http://${SOURCE_HOST}/<%= @repository -%>/indices/override.${CODENAME}.${SUFFIX}
   done
   
   # Reformat override.${CODENAME}.<component> for reprepro ("extended ftp-archive format")
